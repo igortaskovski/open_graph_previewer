@@ -17,7 +17,7 @@ defmodule OpenGraphPreviewerWeb.Router do
   scope "/", OpenGraphPreviewerWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", PreviewLive.Index, :index
   end
 
   # Other scopes may use custom stacks.

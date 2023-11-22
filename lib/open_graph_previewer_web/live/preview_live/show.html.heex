@@ -1,0 +1,30 @@
+<.header>
+  Preview <%= @preview.id %>
+  <:subtitle>This is a preview record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/previews/#{@preview}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit preview</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Og title"><%= @preview.og_title %></:item>
+  <:item title="Og url"><%= @preview.og_url %></:item>
+  <:item title="Og description"><%= @preview.og_description %></:item>
+  <:item title="Og image url"><%= @preview.og_image_url %></:item>
+  <:item title="Status"><%= @preview.status %></:item>
+</.list>
+
+<.back navigate={~p"/previews"}>Back to previews</.back>
+
+<.modal :if={@live_action == :edit} id="preview-modal" show on_cancel={JS.patch(~p"/previews/#{@preview}")}>
+  <.live_component
+    module={OpenGraphPreviewerWeb.PreviewLive.FormComponent}
+    id={@preview.id}
+    title={@page_title}
+    action={@live_action}
+    preview={@preview}
+    patch={~p"/previews/#{@preview}"}
+  />
+</.modal>

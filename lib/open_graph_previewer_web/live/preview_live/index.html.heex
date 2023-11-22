@@ -1,0 +1,45 @@
+<.header>
+  Listing Previews
+  <:actions>
+    <.link patch={~p"/previews/new"}>
+      <.button>New Preview</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="previews"
+  rows={@streams.previews}
+  row_click={fn {_id, preview} -> JS.navigate(~p"/previews/#{preview}") end}
+>
+  <:col :let={{_id, preview}} label="Og title"><%= preview.og_title %></:col>
+  <:col :let={{_id, preview}} label="Og url"><%= preview.og_url %></:col>
+  <:col :let={{_id, preview}} label="Og description"><%= preview.og_description %></:col>
+  <:col :let={{_id, preview}} label="Og image url"><%= preview.og_image_url %></:col>
+  <:col :let={{_id, preview}} label="Status"><%= preview.status %></:col>
+  <:action :let={{_id, preview}}>
+    <div class="sr-only">
+      <.link navigate={~p"/previews/#{preview}"}>Show</.link>
+    </div>
+    <.link patch={~p"/previews/#{preview}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, preview}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: preview.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="preview-modal" show on_cancel={JS.patch(~p"/previews")}>
+  <.live_component
+    module={OpenGraphPreviewerWeb.PreviewLive.FormComponent}
+    id={@preview.id || :new}
+    title={@page_title}
+    action={@live_action}
+    preview={@preview}
+    patch={~p"/previews"}
+  />
+</.modal>
