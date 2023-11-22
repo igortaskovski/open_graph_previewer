@@ -1,45 +1,68 @@
-<.header>
-  Listing Previews
-  <:actions>
-    <.link patch={~p"/previews/new"}>
-      <.button>New Preview</.button>
-    </.link>
-  </:actions>
-</.header>
-
-<.table
-  id="previews"
-  rows={@streams.previews}
-  row_click={fn {_id, preview} -> JS.navigate(~p"/previews/#{preview}") end}
->
-  <:col :let={{_id, preview}} label="Og title"><%= preview.og_title %></:col>
-  <:col :let={{_id, preview}} label="Og url"><%= preview.og_url %></:col>
-  <:col :let={{_id, preview}} label="Og description"><%= preview.og_description %></:col>
-  <:col :let={{_id, preview}} label="Og image url"><%= preview.og_image_url %></:col>
-  <:col :let={{_id, preview}} label="Status"><%= preview.status %></:col>
-  <:action :let={{_id, preview}}>
-    <div class="sr-only">
-      <.link navigate={~p"/previews/#{preview}"}>Show</.link>
+<form phx-submit="process">
+  <div class="space-y-12">
+    <div class="border-gray-900/10 pb-12">
+      <h1 class="text-red-500 text-5xl font-bold text-center">Open Graph Previewer</h1>
+      <p class="mt-1 text-sm leading-6 text-gray-600 text-center">Please enter a URL in the form below to see the open graph preview</p>
+      <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+        <div class="sm:col-span-8 mt-2">
+          <label for="username" class="block text-sm font-medium leading-6 text-gray-900">URL</label>
+          <div class="mt-2">
+            <div class="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+              <input type="url" name="url" id="url" class="block flex-1 border-0 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6" placeholder="Example: https://www.getluna.com" required>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <.link patch={~p"/previews/#{preview}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={{id, preview}}>
-    <.link
-      phx-click={JS.push("delete", value: %{id: preview.id}) |> hide("##{id}")}
-      data-confirm="Are you sure?"
-    >
-      Delete
-    </.link>
-  </:action>
-</.table>
+  </div>
 
-<.modal :if={@live_action in [:new, :edit]} id="preview-modal" show on_cancel={JS.patch(~p"/previews")}>
-  <.live_component
-    module={OpenGraphPreviewerWeb.PreviewLive.FormComponent}
-    id={@preview.id || :new}
-    title={@page_title}
-    action={@live_action}
-    preview={@preview}
-    patch={~p"/previews"}
-  />
-</.modal>
+  <div class="mt-6 flex items-center justify-end gap-x-6">
+    <button phx-disable-with="Saving..." type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Preview</button>
+  </div>
+</form>
+
+<div class="mt-12 hidden1">
+  <div class="px-4 sm:px-0">
+    <h3 class="text-base font-semibold leading-7 text-gray-900">Open Graph Preview Information</h3>
+    <p class="mt-1 max-w-2xl text-sm leading-6 text-gray-500">Here you can find the details we scraped from the URL.</p>
+  </div>
+  <div class="mt-6 border-t border-gray-100">
+    <dl class="divide-y divide-gray-100">
+      <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+        <dt class="text-sm font-medium leading-6 text-gray-900">og:url</dt>
+        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+          <%= @result[:og_url] || "" %>
+        </dd>
+      </div>
+      <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+        <dt class="text-sm font-medium leading-6 text-gray-900">og:title</dt>
+        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+          <%= @result[:og_title] || "" %>
+        </dd>
+      </div>
+      <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+        <dt class="text-sm font-medium leading-6 text-gray-900">og:description</dt>
+        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+          <%= @result[:og_description] || "" %>
+        </dd>
+      </div>
+      <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+        <dt class="text-sm font-medium leading-6 text-gray-900">Status</dt>
+        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+        <%= @result[:status] || @result[:error] %>
+        </dd>
+      </div>
+
+      <div class="w-full px-4 py-6 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0">
+        <dt class="text-sm font-medium leading-6 text-gray-900">og:image</dt>
+        <dd class="text-gray-700 sm:col-span-2 sm:mt-0 flex items-center justify-center">
+          <div class="bg-white p-8 rounded-lg border-solid border-gray-50 max-w-lg">
+            <img src={ @result[:og_image_url] } alt="" class="mb-4 rounded-lg">
+            <h2 class="text-gray-800 mb-2"><%= @result[:og_title] || "" %></h2>
+            <p class="text-gray-600"><%= @result[:og_description] || "" %></p>
+          </div>
+        </dd>
+      </div>
+    </dl>
+  </div>
+</div>
