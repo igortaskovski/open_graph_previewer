@@ -1,47 +1,29 @@
 defmodule OpenGraphPreviewerWeb.PreviewLive.Index do
   use OpenGraphPreviewerWeb, :live_view
 
+  alias OpenGraphPreviewer.Parser
+  alias OpenGraphPreviewer.Fetcher
   alias OpenGraphPreviewer.Previews
-  alias OpenGraphPreviewer.Previews.Preview
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :previews, Previews.list_previews())}
+    {:ok, assign(socket, result: %{og_description: "", og_title: "", og_image_url: "", og_url: "", status: "", error: ""})}
   end
 
   @impl true
-  def handle_params(params, _url, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  def handle_event("process", %{"url" => url}, socket) do
+    processed_data = process_request(url)
+    {:noreply, assign(socket, result: processed_data)}
   end
 
-  defp apply_action(socket, :edit, %{"id" => id}) do
-    socket
-    |> assign(:page_title, "Edit Preview")
-    |> assign(:preview, Previews.get_preview!(id))
-  end
-
-  defp apply_action(socket, :new, _params) do
-    socket
-    |> assign(:page_title, "New Preview")
-    |> assign(:preview, %Preview{})
-  end
-
-  defp apply_action(socket, :index, _params) do
-    socket
-    |> assign(:page_title, "Listing Previews")
-    |> assign(:preview, nil)
-  end
-
-  @impl true
-  def handle_info({OpenGraphPreviewerWeb.PreviewLive.FormComponent, {:saved, preview}}, socket) do
-    {:noreply, stream_insert(socket, :previews, preview)}
-  end
-
-  @impl true
-  def handle_event("delete", %{"id" => id}, socket) do
-    preview = Previews.get_preview!(id)
-    {:ok, _} = Previews.delete_preview(preview)
-
-    {:noreply, stream_delete(socket, :previews, preview)}
+  defp process_request(url) do
+    with {:ok, document}   <- Fetcher.fetch_html(url),
+         {:ok, properties} <- Parser.build_properties(document),
+         {:ok, preview}    <- Previews.create_preview(properties) do
+         Map.from_struct(preview)
+    else
+      {:error, message} ->
+        %{error: message}
+    end
   end
 end
