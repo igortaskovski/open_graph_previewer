@@ -19,7 +19,7 @@ defmodule OpenGraphPreviewer.MixProject do
   def application do
     [
       mod: {OpenGraphPreviewer.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :exvcr]
     ]
   end
 
@@ -51,7 +51,8 @@ defmodule OpenGraphPreviewer.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:plug_cowboy, "~> 2.5"},
       {:httpoison, "~> 2.2"},
-      {:floki, "~> 0.35.2"}
+      {:floki, "~> 0.35.2"},
+      {:exvcr, "~> 0.13", only: :test}
     ]
   end
 

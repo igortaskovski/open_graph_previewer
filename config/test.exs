@@ -31,3 +31,8 @@ config :logger, level: :warning
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
+
+# Configure ExVCR
+config :exvcr,
+  cassette_path: "test/fixtures/vcr_cassettes",
+  adapters: [ExVCR.Adapters.HTTPoison]
