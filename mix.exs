@@ -19,7 +19,7 @@ defmodule OpenGraphPreviewer.MixProject do
   def application do
     [
       mod: {OpenGraphPreviewer.Application, []},
-      extra_applications: [:logger, :runtime_tools, :exvcr]
+      extra_applications: [:logger, :runtime_tools]
     ]
   end
 
